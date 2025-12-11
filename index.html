@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Phase 10 Score Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 100%;
+            height: 98vh;
+            max-height: 98vh;
+            padding: clamp(8px, 2vw, 15px);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: clamp(8px, 2vh, 15px);
+            font-size: clamp(1.3em, 5vw, 2.5em);
+        }
+
+        .setup {
+            display: flex;
+            flex-direction: column;
+            gap: clamp(10px, 2vh, 15px);
+        }
+
+        .player-count {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        label {
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: clamp(14px, 3vw, 16px);
+        }
+
+        input, select {
+            padding: clamp(10px, 2vh, 12px);
+            font-size: clamp(14px, 3.5vw, 16px);
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .player-names {
+            display: flex;
+            flex-direction: column;
+            gap: clamp(8px, 1.5vh, 10px);
+            max-height: 50vh;
+            overflow-y: auto;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: clamp(10px, 2vh, 15px) clamp(15px, 3vw, 30px);
+            font-size: clamp(14px, 3.5vw, 18px);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: rgba(102, 126, 234, 0.3);
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .start-btn {
+            background: #27ae60;
+            padding: clamp(12px, 2.5vh, 15px);
+            font-size: clamp(16px, 4vw, 18px);
+        }
+
+        .start-btn:hover {
+            background: #229954;
+        }
+
+        .game-view {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .scoreboard {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: clamp(8px, 2vh, 15px);
+            padding-right: 5px;
+        }
+
+        .player-card {
+            background: white;
+            border-radius: clamp(8px, 2vw, 12px);
+            padding: clamp(10px, 2vh, 20px);
+            margin-bottom: clamp(8px, 1.5vh, 10px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 3px solid transparent;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .player-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .player-card.flash {
+            animation: cardFlash 1s ease-in-out 2;
+        }
+
+        @keyframes cardFlash {
+            0%, 100% { 
+                background: white;
+                transform: scale(1);
+                border-color: transparent;
+            }
+            50% { 
+                background: #fff3cd;
+                transform: scale(1.02);
+                border-color: #ffc107;
+            }
+        }
+
+        .player-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: clamp(8px, 1.5vh, 10px);
+        }
+
+        .player-name {
+            font-size: clamp(20px, 5vw, 32px);
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .player-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: clamp(10px, 2vw, 15px);
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: clamp(8px, 1.5vh, 10px);
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .stat-label {
+            font-size: clamp(11px, 2.5vw, 14px);
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: clamp(28px, 7vw, 48px);
+            font-weight: bold;
+            line-height: 1;
+        }
+
+        .phase-value {
+            color: #667eea;
+        }
+
+        .points-value {
+            color: #e74c3c;
+        }
+
+        .controls {
+            flex-shrink: 0;
+            display: flex;
+            gap: clamp(8px, 2vw, 10px);
+            justify-content: center;
+            flex-wrap: wrap;
+            padding-top: clamp(8px, 2vh, 10px);
+            border-top: 2px solid #eee;
+        }
+
+        .voice-btn {
+            background: #9b59b6;
+            padding: clamp(10px, 2vh, 12px) clamp(15px, 3vw, 20px);
+            font-size: clamp(14px, 3.5vw, 16px);
+        }
+
+        .voice-btn:hover {
+            background: #8e44ad;
+        }
+
+        .voice-btn.listening {
+            background: #e74c3c;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .reset-btn {
+            background: #95a5a6;
+            padding: clamp(10px, 2vh, 12px) clamp(15px, 3vw, 20px);
+            font-size: clamp(14px, 3.5vw, 16px);
+        }
+
+        .reset-btn:hover {
+            background: #7f8c8d;
+        }
+
+        .voice-feedback {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: clamp(15px, 3vh, 20px) clamp(20px, 5vw, 30px);
+            border-radius: 10px;
+            font-size: clamp(14px, 3.5vw, 18px);
+            z-index: 1000;
+            display: none;
+            max-width: 85%;
+            text-align: center;
+        }
+
+        .voice-feedback.show {
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            .player-stats {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .stat-value {
+                font-size: clamp(24px, 8vw, 36px);
+            }
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: clamp(20px, 4vh, 25px);
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            font-size: clamp(20px, 5vw, 24px);
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: clamp(15px, 3vh, 20px);
+            text-align: center;
+        }
+
+        .modal-body {
+            display: flex;
+            flex-direction: column;
+            gap: clamp(12px, 2.5vh, 15px);
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-group label {
+            font-size: clamp(13px, 3vw, 14px);
+            color: #7f8c8d;
+            font-weight: bold;
+        }
+
+        .input-group input {
+            padding: clamp(12px, 2.5vh, 15px);
+            font-size: clamp(18px, 4.5vw, 20px);
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .modal-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .modal-btn {
+            padding: clamp(12px, 2.5vh, 15px);
+            font-size: clamp(15px, 3.5vw, 16px);
+        }
+
+        .save-btn {
+            background: #27ae60;
+        }
+
+        .save-btn:hover {
+            background: #229954;
+        }
+
+        .cancel-btn {
+            background: #95a5a6;
+        }
+
+        .cancel-btn:hover {
+            background: #7f8c8d;
+        }
+
+        .undo-btn {
+            background: #f39c12;
+            padding: clamp(10px, 2vh, 12px) clamp(15px, 3vw, 20px);
+            font-size: clamp(14px, 3.5vw, 16px);
+        }
+
+        .undo-btn:hover {
+            background: #e67e22;
+        }
+
+        /* History Modal */
+        .history-list {
+            max-height: 40vh;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+
+        .history-item {
+            background: #f8f9fa;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .history-round {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+
+        .history-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-phase {
+            font-size: 16px;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .history-points {
+            font-size: 16px;
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .no-history {
+            text-align: center;
+            color: #7f8c8d;
+            padding: 20px;
+            font-style: italic;
+        }
+
+        .history-button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .history-button:hover {
+            background: #2980b9;
+        }
+
+        /* Small phone optimizations */
+        @media (max-width: 375px) {
+            .container {
+                padding: 5px;
+            }
+
+            h1 {
+                font-size: 1.2em;
+                margin-bottom: 5px;
+            }
+
+            .player-card {
+                padding: 8px;
+                margin-bottom: 6px;
+            }
+
+            .player-name {
+                font-size: 18px;
+            }
+
+            .stat-value {
+                font-size: 24px;
+            }
+
+            .stat-label {
+                font-size: 10px;
+            }
+
+            button {
+                font-size: 13px;
+                padding: 8px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎴 Phase 10 Tracker</h1>
+        
+        <div class="setup" id="setup">
+            <div class="player-count">
+                <label>Number of Players:</label>
+                <select id="playerCount">
+                    <option value="2">2 Players</option>
+                    <option value="3">3 Players</option>
+                    <option value="4" selected>4 Players</option>
+                    <option value="5">5 Players</option>
+                    <option value="6">6 Players</option>
+                    <option value="7">7 Players</option>
+                    <option value="8">8 Players</option>
+                    <option value="9">9 Players</option>
+                    <option value="10">10 Players</option>
+                </select>
+            </div>
+            
+            <div class="player-names" id="playerNames">
+                <!-- Player name inputs will be generated here -->
+            </div>
+            
+            <button class="start-btn" id="startBtn">Start Game</button>
+        </div>
+
+        <div class="game-view" id="gameView">
+            <div class="scoreboard" id="scoreboard">
+                <!-- Player cards will be generated here -->
+            </div>
+
+            <div class="controls">
+                <button class="voice-btn" id="voiceBtn">🎤 Voice</button>
+                <button class="reset-btn" id="undoBtn">↶ Undo</button>
+                <button class="reset-btn" id="resetBtn">New Game</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="voice-feedback" id="voiceFeedback"></div>
+
+    <!-- Modal for editing player score -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header" id="modalHeader">Edit Score</div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label>Next Phase (1-10)</label>
+                    <input type="number" id="modalPhase" min="1" max="10" value="1">
+                </div>
+                <div class="input-group">
+                    <label>Add Points</label>
+                    <input type="number" id="modalPoints" min="0" value="0">
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn save-btn" id="saveBtn">Save</button>
+                <button class="modal-btn cancel-btn" id="cancelBtn">Cancel</button>
+            </div>
+            <button class="history-button" id="viewHistoryBtn">📊 View History</button>
+        </div>
+    </div>
+
+    <!-- Modal for viewing player history -->
+    <div class="modal" id="historyModal">
+        <div class="modal-content">
+            <div class="modal-header" id="historyHeader">Player History</div>
+            <div class="history-list" id="historyList">
+                <!-- History items will be inserted here -->
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn cancel-btn" id="closeHistoryBtn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            var gameState = {
+                players: [],
+                currentRound: 1,
+                history: []
+            };
+
+            var recognition = null;
+            var isListening = false;
+            var wakeLock = null;
+            var editingPlayerIndex = null;
+            var viewingHistoryIndex = null;
+
+            // Generate player name inputs
+            document.getElementById('playerCount').addEventListener('change', generatePlayerInputs);
+            generatePlayerInputs();
+
+            function generatePlayerInputs() {
+                var count = parseInt(document.getElementById('playerCount').value);
+                var container = document.getElementById('playerNames');
+                container.innerHTML = '';
+
+                for (var i = 1; i <= count; i++) {
+                    var input = document.createElement('input');
+                    input.type = 'text';
+                    input.placeholder = 'Player ' + i + ' Name';
+                    input.id = 'player' + i;
+                    input.value = 'Player ' + i;
+                    container.appendChild(input);
+                }
+            }
+
+            function startGame() {
+                var count = parseInt(document.getElementById('playerCount').value);
+                gameState.players = [];
+                gameState.history = [];
+
+                for (var i = 1; i <= count; i++) {
+                    var name = document.getElementById('player' + i).value.trim() || 'Player ' + i;
+                    gameState.players.push({
+                        name: name,
+                        phase: 1,
+                        totalPoints: 0,
+                        rounds: []
+                    });
+                }
+
+                document.getElementById('setup').style.display = 'none';
+                document.getElementById('gameView').style.display = 'flex';
+                
+                renderScoreboard();
+                requestWakeLock();
+            }
+
+            function renderScoreboard() {
+                var container = document.getElementById('scoreboard');
+                container.innerHTML = '';
+
+                gameState.players.forEach(function(player, index) {
+                    var card = document.createElement('div');
+                    card.className = 'player-card';
+                    card.id = 'player-card-' + index;
+                    
+                    // Add click handler for manual editing
+                    card.addEventListener('click', function() {
+                        openEditModal(index);
+                    });
+                    
+                    card.innerHTML = 
+                        '<div class="player-header">' +
+                            '<div class="player-name">' + player.name + '</div>' +
+                        '</div>' +
+                        '<div class="player-stats">' +
+                            '<div class="stat-box">' +
+                                '<div class="stat-label">Next Phase</div>' +
+                                '<div class="stat-value phase-value" id="phase-' + index + '">' + player.phase + '</div>' +
+                            '</div>' +
+                            '<div class="stat-box">' +
+                                '<div class="stat-label">Total Points</div>' +
+                                '<div class="stat-value points-value" id="points-' + index + '">' + player.totalPoints + '</div>' +
+                            '</div>' +
+                        '</div>';
+                    
+                    container.appendChild(card);
+                });
+            }
+
+            function openEditModal(playerIndex) {
+                editingPlayerIndex = playerIndex;
+                var player = gameState.players[playerIndex];
+                
+                document.getElementById('modalHeader').textContent = player.name;
+                document.getElementById('modalPhase').value = player.phase;
+                document.getElementById('modalPoints').value = 0;
+                
+                document.getElementById('editModal').classList.add('show');
+            }
+
+            function closeEditModal() {
+                document.getElementById('editModal').classList.remove('show');
+                editingPlayerIndex = null;
+            }
+
+            function saveEditModal() {
+                if (editingPlayerIndex === null) return;
+                
+                var phase = parseInt(document.getElementById('modalPhase').value);
+                var points = parseInt(document.getElementById('modalPoints').value);
+                
+                if (phase < 1 || phase > 10) {
+                    alert('Phase must be between 1 and 10');
+                    return;
+                }
+                
+                // Save state for undo
+                saveStateForUndo();
+                
+                var player = gameState.players[editingPlayerIndex];
+                var oldPhase = player.phase;
+                var oldPoints = player.totalPoints;
+                
+                player.phase = phase;
+                player.totalPoints += points;
+                
+                // Add to player's round history
+                player.rounds.push({
+                    round: gameState.currentRound,
+                    phase: phase,
+                    points: points,
+                    timestamp: new Date().toLocaleString()
+                });
+                
+                gameState.currentRound++;
+                
+                document.getElementById('phase-' + editingPlayerIndex).textContent = player.phase;
+                document.getElementById('points-' + editingPlayerIndex).textContent = player.totalPoints;
+                
+                showVoiceFeedback(player.name + ': Phase ' + phase + ', +' + points + ' pts');
+                closeEditModal();
+            }
+
+            function saveStateForUndo() {
+                gameState.history.push(JSON.stringify({
+                    players: gameState.players.map(function(p) {
+                        return {
+                            name: p.name,
+                            phase: p.phase,
+                            totalPoints: p.totalPoints,
+                            rounds: p.rounds.slice()
+                        };
+                    }),
+                    currentRound: gameState.currentRound
+                }));
+            }
+
+            function undoLastAction() {
+                if (gameState.history.length === 0) {
+                    showVoiceFeedback('Nothing to undo');
+                    return;
+                }
+                
+                var lastState = JSON.parse(gameState.history.pop());
+                gameState.players = lastState.players;
+                gameState.currentRound = lastState.currentRound;
+                
+                // Update display for all players
+                gameState.players.forEach(function(player, index) {
+                    document.getElementById('phase-' + index).textContent = player.phase;
+                    document.getElementById('points-' + index).textContent = player.totalPoints;
+                });
+                
+                showVoiceFeedback('Undo successful');
+            }
+
+            function viewPlayerHistory(playerIndex) {
+                viewingHistoryIndex = playerIndex;
+                var player = gameState.players[playerIndex];
+                
+                document.getElementById('historyHeader').textContent = player.name + ' - History';
+                
+                var historyList = document.getElementById('historyList');
+                historyList.innerHTML = '';
+                
+                if (player.rounds.length === 0) {
+                    historyList.innerHTML = '<div class="no-history">No rounds played yet</div>';
+                } else {
+                    player.rounds.forEach(function(round) {
+                        var item = document.createElement('div');
+                        item.className = 'history-item';
+                        item.innerHTML = 
+                            '<div class="history-round">Round ' + round.round + ' - ' + round.timestamp + '</div>' +
+                            '<div class="history-details">' +
+                                '<div class="history-phase">Phase ' + round.phase + '</div>' +
+                                '<div class="history-points">+' + round.points + ' pts</div>' +
+                            '</div>';
+                        historyList.appendChild(item);
+                    });
+                }
+                
+                closeEditModal();
+                document.getElementById('historyModal').classList.add('show');
+            }
+
+            function closeHistoryModal() {
+                document.getElementById('historyModal').classList.remove('show');
+                viewingHistoryIndex = null;
+            }
+
+            function updatePlayerScore(playerName, phase, points) {
+                playerName = playerName.toLowerCase().trim();
+                
+                var playerIndex = gameState.players.findIndex(function(p) {
+                    return p.name.toLowerCase() === playerName;
+                });
+
+                if (playerIndex === -1) {
+                    showVoiceFeedback('Player "' + playerName + '" not found');
+                    return false;
+                }
+
+                var player = gameState.players[playerIndex];
+                player.phase = phase;
+                player.totalPoints += points;
+
+                document.getElementById('phase-' + playerIndex).textContent = player.phase;
+                document.getElementById('points-' + playerIndex).textContent = player.totalPoints;
+
+                showVoiceFeedback(player.name + ': Phase ' + phase + ', +' + points + ' pts');
+                return true;
+            }
+
+            function announceScores() {
+                showVoiceFeedback('Announcing scores...');
+                
+                gameState.players.forEach(function(player, index) {
+                    setTimeout(function() {
+                        flashPlayerCard(index);
+                        
+                        var announcement = player.name + '. ' +
+                                         'Phase ' + player.phase + '. ' +
+                                         player.totalPoints + ' points.';
+                        
+                        speak(announcement);
+                    }, index * 3000);
+                });
+            }
+
+            function flashPlayerCard(index) {
+                var card = document.getElementById('player-card-' + index);
+                if (card) {
+                    card.classList.add('flash');
+                    setTimeout(function() {
+                        card.classList.remove('flash');
+                    }, 2000);
+                }
+            }
+
+            function initVoiceRecognition() {
+                var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                
+                if (!SpeechRecognition) {
+                    return null;
+                }
+
+                recognition = new SpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = false;
+                recognition.lang = 'en-US';
+
+                recognition.onstart = function() {
+                    isListening = true;
+                    var voiceBtn = document.getElementById('voiceBtn');
+                    if (voiceBtn) {
+                        voiceBtn.classList.add('listening');
+                        voiceBtn.textContent = '🎤 Stop';
+                    }
+                };
+
+                recognition.onend = function() {
+                    var voiceBtn = document.getElementById('voiceBtn');
+                    
+                    if (isListening) {
+                        if (voiceBtn) {
+                            voiceBtn.classList.add('listening');
+                            voiceBtn.textContent = '🎤 Stop';
+                        }
+                        
+                        setTimeout(function() {
+                            if (isListening) {
+                                try {
+                                    recognition.start();
+                                } catch (e) {
+                                    console.log('Recognition restart error:', e);
+                                    setTimeout(function() {
+                                        if (isListening) {
+                                            try {
+                                                recognition.start();
+                                            } catch (e2) {
+                                                isListening = false;
+                                                if (voiceBtn) {
+                                                    voiceBtn.classList.remove('listening');
+                                                    voiceBtn.textContent = '🎤 Voice';
+                                                }
+                                            }
+                                        }
+                                    }, 500);
+                                }
+                            }
+                        }, 300);
+                    } else {
+                        if (voiceBtn) {
+                            voiceBtn.classList.remove('listening');
+                            voiceBtn.textContent = '🎤 Voice';
+                        }
+                    }
+                };
+
+                recognition.onresult = function(event) {
+                    var last = event.results.length - 1;
+                    var transcript = event.results[last][0].transcript.toLowerCase().trim();
+                    console.log('Heard:', transcript);
+                    
+                    if (transcript.includes('stop listening') || 
+                        transcript.includes('stop voice') || 
+                        transcript.includes('turn off')) {
+                        showVoiceFeedback('Voice recognition OFF');
+                        isListening = false;
+                        recognition.stop();
+                        return;
+                    }
+                    
+                    showVoiceFeedback('Heard: ' + transcript);
+                    
+                    setTimeout(function() {
+                        processVoiceCommand(transcript);
+                    }, 100);
+                };
+
+                recognition.onerror = function(event) {
+                    console.error('Speech recognition error:', event.error);
+                    
+                    if (event.error === 'not-allowed') {
+                        isListening = false;
+                        var voiceBtn = document.getElementById('voiceBtn');
+                        if (voiceBtn) {
+                            voiceBtn.classList.remove('listening');
+                            voiceBtn.textContent = '🎤 Voice';
+                        }
+                        alert('Microphone access required!\n\nGrant permission in Settings.');
+                    } else if (event.error === 'no-speech') {
+                        console.log('No speech detected');
+                    } else if (event.error === 'aborted') {
+                        isListening = false;
+                    }
+                };
+
+                return recognition;
+            }
+
+            function processVoiceCommand(command) {
+                console.log('Processing:', command);
+                
+                // Check for score announcement
+                if (command.includes('score') || command.includes('scores')) {
+                    announceScores();
+                    return;
+                }
+
+                // Parse: "PlayerName phase X points Y" or "PlayerName X Y"
+                // Examples: "Alice phase 3 points 25" or "Bob 5 30"
+                
+                var playerNames = gameState.players.map(function(p) { return p.name.toLowerCase(); });
+                var foundPlayer = null;
+                var playerName = null;
+
+                // Find which player name is in the command
+                for (var i = 0; i < playerNames.length; i++) {
+                    if (command.includes(playerNames[i])) {
+                        foundPlayer = gameState.players[i];
+                        playerName = foundPlayer.name;
+                        // Remove player name from command for easier parsing
+                        command = command.replace(playerNames[i], '').trim();
+                        break;
+                    }
+                }
+
+                if (!foundPlayer) {
+                    showVoiceFeedback('Player name not recognized');
+                    return;
+                }
+
+                // Extract phase and points
+                var numbers = command.match(/\d+/g);
+                
+                if (!numbers || numbers.length < 2) {
+                    showVoiceFeedback('Say: ' + playerName + ' phase X points Y');
+                    return;
+                }
+
+                var phase = parseInt(numbers[0]);
+                var points = parseInt(numbers[1]);
+
+                if (phase < 1 || phase > 10) {
+                    showVoiceFeedback('Phase must be 1-10');
+                    return;
+                }
+
+                updatePlayerScore(playerName, phase, points);
+            }
+
+            function speak(text) {
+                if (!('speechSynthesis' in window)) {
+                    return;
+                }
+                
+                window.speechSynthesis.cancel();
+                
+                setTimeout(function() {
+                    var utterance = new SpeechSynthesisUtterance(text);
+                    utterance.rate = 0.85;
+                    utterance.pitch = 1.0;
+                    utterance.volume = 1.0;
+                    utterance.lang = 'en-US';
+                    
+                    window.speechSynthesis.speak(utterance);
+                }, 100);
+            }
+
+            function showVoiceFeedback(message) {
+                var feedback = document.getElementById('voiceFeedback');
+                if (feedback) {
+                    feedback.textContent = message;
+                    feedback.classList.add('show');
+                    setTimeout(function() {
+                        feedback.classList.remove('show');
+                    }, 2000);
+                }
+            }
+
+            function toggleVoiceRecognition() {
+                if (!recognition) {
+                    recognition = initVoiceRecognition();
+                    if (!recognition) {
+                        alert('Voice recognition not supported');
+                        return;
+                    }
+                }
+
+                if (isListening) {
+                    isListening = false;
+                    try {
+                        recognition.stop();
+                    } catch (e) {
+                        console.log('Stop error:', e);
+                    }
+                    showVoiceFeedback('Voice OFF');
+                } else {
+                    startRecognition();
+                }
+            }
+
+            function startRecognition() {
+                try {
+                    try {
+                        recognition.stop();
+                    } catch (e) {}
+                    
+                    setTimeout(function() {
+                        try {
+                            recognition.start();
+                            showVoiceFeedback('Voice ON');
+                        } catch (e) {
+                            setTimeout(function() {
+                                try {
+                                    recognition.start();
+                                    showVoiceFeedback('Voice ON');
+                                } catch (e2) {
+                                    showVoiceFeedback('Tap Voice again');
+                                    isListening = false;
+                                }
+                            }, 500);
+                        }
+                    }, 200);
+                } catch (e) {
+                    showVoiceFeedback('Error starting voice');
+                    isListening = false;
+                }
+            }
+
+            function resetGame() {
+                if (confirm('Start a new game? All scores will be lost.')) {
+                    document.getElementById('setup').style.display = 'flex';
+                    document.getElementById('gameView').style.display = 'none';
+                    
+                    if (isListening) {
+                        isListening = false;
+                        try {
+                            recognition.stop();
+                        } catch (e) {}
+                    }
+                }
+            }
+
+            async function requestWakeLock() {
+                try {
+                    if ('wakeLock' in navigator) {
+                        wakeLock = await navigator.wakeLock.request('screen');
+                        console.log('Screen wake lock enabled');
+                        
+                        wakeLock.addEventListener('release', function() {
+                            console.log('Wake lock released');
+                        });
+                    }
+                } catch (err) {
+                    console.error('Wake lock error:', err);
+                }
+                
+                document.addEventListener('visibilitychange', async function() {
+                    if (wakeLock !== null && document.visibilityState === 'visible') {
+                        try {
+                            wakeLock = await navigator.wakeLock.request('screen');
+                        } catch (err) {
+                            console.error('Could not re-acquire wake lock:', err);
+                        }
+                    }
+                });
+            }
+
+            function attachEventHandlers() {
+                var startBtn = document.getElementById('startBtn');
+                var voiceBtn = document.getElementById('voiceBtn');
+                var resetBtn = document.getElementById('resetBtn');
+                var undoBtn = document.getElementById('undoBtn');
+                var saveBtn = document.getElementById('saveBtn');
+                var cancelBtn = document.getElementById('cancelBtn');
+                var viewHistoryBtn = document.getElementById('viewHistoryBtn');
+                var closeHistoryBtn = document.getElementById('closeHistoryBtn');
+
+                if (startBtn) {
+                    startBtn.addEventListener('click', startGame);
+                }
+
+                if (voiceBtn) {
+                    voiceBtn.addEventListener('touchstart', function(e) {
+                        e.preventDefault();
+                        toggleVoiceRecognition();
+                    }, { passive: false });
+                    voiceBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        toggleVoiceRecognition();
+                    });
+                }
+
+                if (undoBtn) {
+                    undoBtn.addEventListener('touchstart', function(e) {
+                        e.preventDefault();
+                        undoLastAction();
+                    }, { passive: false });
+                    undoBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        undoLastAction();
+                    });
+                }
+
+                if (resetBtn) {
+                    resetBtn.addEventListener('touchstart', function(e) {
+                        e.preventDefault();
+                        resetGame();
+                    }, { passive: false });
+                    resetBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        resetGame();
+                    });
+                }
+
+                if (saveBtn) {
+                    saveBtn.addEventListener('click', saveEditModal);
+                }
+
+                if (cancelBtn) {
+                    cancelBtn.addEventListener('click', closeEditModal);
+                }
+
+                if (viewHistoryBtn) {
+                    viewHistoryBtn.addEventListener('click', function() {
+                        viewPlayerHistory(editingPlayerIndex);
+                    });
+                }
+
+                if (closeHistoryBtn) {
+                    closeHistoryBtn.addEventListener('click', closeHistoryModal);
+                }
+
+                // Close modals when clicking outside
+                var editModal = document.getElementById('editModal');
+                if (editModal) {
+                    editModal.addEventListener('click', function(e) {
+                        if (e.target === editModal) {
+                            closeEditModal();
+                        }
+                    });
+                }
+
+                var historyModal = document.getElementById('historyModal');
+                if (historyModal) {
+                    historyModal.addEventListener('click', function(e) {
+                        if (e.target === historyModal) {
+                            closeHistoryModal();
+                        }
+                    });
+                }
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', attachEventHandlers);
+            } else {
+                attachEventHandlers();
+            }
+        })();
+    </script>
+</body>
+</html>
